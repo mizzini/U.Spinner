@@ -32,6 +32,44 @@ public static Vector3 CatmullRomSpline(float t, int i, Vector3[] controlPoints, 
 ![Boomerang Demo](Assets/Readme/boomerang.gif)
 
 At this point I was having a bit of fun with parametric equations, so I decided to implement the beginning of a simple enemy that would spawn from random points on a ground plane, and "dive" back into another random point,
+```
+private Vector3 RandomPoint(Plane p, float range)
+{
+    float x = Random.Range(-range, range);
+    float z = Random.Range(-range, range);
+
+    // Plane.normal = (A, B, C)
+    // Plane.distance = D or -D ?
+    float y = (-p.normal.x * x - p.normal.z * z - p.distance) / p.normal.y;
+
+    return new Vector3(x, y, z);
+}
+
+// Generate a random tangent direction to find co-planar point to any random point
+private Vector3 RandomTangentDirection(Plane p)
+{
+    // Generate a random direction perpendicular to the plane's normal
+    // by using the cross product.
+    Vector3 tangent = Vector3.Cross(p.normal, Vector3.up);
+    // Handle edge case when plane normal is (0,1,0) ?
+    if (tangent == Vector3.zero) tangent = Vector3.right;
+
+    Vector3 bitangent = Vector3.Cross(p.normal, tangent).normalized;
+
+    // Rotate some degrees around plane normal
+    float angle = Random.Range(0f, 360f);
+    Vector3 direction = Quaternion.AngleAxis(angle, p.normal) * bitangent;
+
+    return direction.normalized;
+}
+
+private void RandomPointPair(Plane p, float distance, out Vector3 pointA, out Vector3 pointB)
+{
+    pointA = RandomPoint(p, distance);
+    Vector3 randomDir = RandomTangentDirection(p);
+    pointB = pointA + randomDir * distance;
+}
+```
 ![impl](Assets/Readme/enemy.gif)
 similar to Volvagia from The Ocarina of Time.
 ![Volvagia](Assets/Readme/volvagia.gif)
